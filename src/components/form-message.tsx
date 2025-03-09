@@ -3,9 +3,9 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export type Message =
-  | { success: string }
-  | { error: string }
-  | { message: string }
+  | { success: string | string[] }
+  | { error: string | string[] }
+  | { message: string | string[] }
   | Record<string, never>;
 
 export function FormMessage({ message = {} }: { message: Message }) {
