@@ -35,7 +35,6 @@ export const signUpAction = async (formData: FormData) => {
         full_name: fullName,
         email: email,
       },
-      shouldCreateUser: true,
       emailConfirmationRedirectTo: `${origin}/sign-in?verified=true`,
     },
   });
