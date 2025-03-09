@@ -54,7 +54,7 @@ export default function TrackingScript() {
 
         if (data?.visitor_id && !visitorId) {
           visitorId = data.visitor_id;
-          localStorage.setItem("visitor_id", visitorId);
+          localStorage.setItem("visitor_id", visitorId as string);
         }
       } catch (err) {
         console.error("Failed to track page view:", err);
