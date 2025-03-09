@@ -46,10 +46,12 @@ export default function TrackingStatusChecker() {
       console.log("Tracking API check successful:", data);
       setStatus("available");
       setMessage("Tracking function is available and working correctly.");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Function check failed:", err);
       setStatus("unavailable");
-      setMessage(`Error checking tracking function: ${err.message}`);
+      setMessage(
+        `Error checking tracking function: ${err.message || "Unknown error"}`,
+      );
     } finally {
       setIsChecking(false);
     }
