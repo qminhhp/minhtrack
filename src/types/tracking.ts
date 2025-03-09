@@ -72,11 +72,13 @@ export interface VisitorWithDetails extends Visitor {
   events?: Event[];
 }
 
+export interface DateRange {
+  from: Date;
+  to?: Date;
+}
+
 export interface FilterOptions {
-  dateRange?: {
-    from?: Date;
-    to?: Date;
-  };
+  dateRange?: DateRange;
   country?: string;
   browser?: string;
   os?: string;

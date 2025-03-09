@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { FilterOptions } from "@/types/tracking";
+import { FilterOptions, DateRange } from "@/types/tracking";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon, Filter, X } from "lucide-react";
@@ -32,7 +32,7 @@ import {
 const filterSchema = z.object({
   dateRange: z
     .object({
-      from: z.date().optional(),
+      from: z.date(),
       to: z.date().optional(),
     })
     .optional(),
