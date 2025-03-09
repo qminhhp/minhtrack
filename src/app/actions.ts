@@ -30,12 +30,11 @@ export const signUpAction = async (formData: FormData) => {
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback?redirect_to=/sign-in?verified=true`,
       data: {
         full_name: fullName,
         email: email,
       },
-      emailConfirmationRedirectTo: `${origin}/sign-in?verified=true`,
     },
   });
 
