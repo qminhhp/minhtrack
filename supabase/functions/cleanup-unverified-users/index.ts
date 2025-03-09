@@ -1,7 +1,7 @@
 // Follow this setup guide to integrate the Deno runtime into your application:
 // https://deno.com/manual/examples/supabase-functions
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 
 Deno.serve(async (req) => {
   // This is needed if you're planning to invoke your function from a browser.
