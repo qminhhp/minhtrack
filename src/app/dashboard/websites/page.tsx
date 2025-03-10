@@ -1,32 +1,41 @@
 import DashboardNavbar from "@/components/dashboard-navbar";
-import { createClient } from "../../../../supabase/server";
 import { redirect } from "next/navigation";
 import WebsitesList from "@/components/websites/websites-list";
 import AddWebsiteButton from "@/components/websites/add-website-button";
 import TrackingStatusChecker from "@/components/websites/tracking-status-checker";
 import TrackingFallback from "@/components/websites/tracking-fallback";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+import { getUserById } from "@/lib/auth";
+import { getWebsitesByUserId } from "@/lib/websites";
 
 export default async function WebsitesPage() {
-  const supabase = await createClient();
+  const cookieStore = cookies();
+  const token = cookieStore.get("auth_token")?.value;
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
+  if (!token) {
     return redirect("/sign-in");
   }
 
-  // Fetch user's websites
-  const { data: websites } = await supabase
-    .from("websites")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  try {
+    // Verify the token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your-secret-key"
+    ) as { id: string; email: string };
 
-  // Generate a unique key for this render to avoid duplicate key warnings
-  const renderKey = Math.random().toString(36).substring(2, 15);
+    // Get the user from the database
+    const user = await getUserById(decoded.id);
+
+    if (!user) {
+      return redirect("/sign-in");
+    }
+
+    // Fetch user's websites
+    const websites = await getWebsitesByUserId(user.id);
+
+    // Generate a unique key for this render to avoid duplicate key warnings
+    const renderKey = Math.random().toString(36).substring(2, 15);
 
   return (
     <>
@@ -53,4 +62,8 @@ export default async function WebsitesPage() {
       </main>
     </>
   );
+  } catch (error) {
+    console.error("Auth error in websites page:", error);
+    return redirect("/sign-in");
+  }
 }

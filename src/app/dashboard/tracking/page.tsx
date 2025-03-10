@@ -2,89 +2,44 @@ import DashboardNavbar from "@/components/dashboard-navbar";
 import StatsCards from "@/components/tracking/stats-cards";
 import VisitorCard from "@/components/tracking/visitor-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createClient } from "../../../../supabase/server";
 import { redirect } from "next/navigation";
-import { Visitor } from "@/types/tracking";
 import RealTimeMonitor from "@/components/tracking/real-time-monitor";
 import InteractionChart from "@/components/tracking/interaction-chart";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+import { getUserById } from "@/lib/auth";
+import { getVisitors, getActiveVisits, getVisitorStats } from "@/lib/tracking";
 
 export default async function TrackingDashboard() {
-  const supabase = await createClient();
+  const cookieStore = cookies();
+  const token = cookieStore.get("auth_token")?.value;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!token) {
     return redirect("/sign-in");
   }
 
-  // Fetch visitors data
-  const { data: visitorsData } = await supabase
-    .from("visitors")
-    .select("*")
-    .order("last_visit_at", { ascending: false })
-    .limit(12);
+  try {
+    // Verify the token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your-secret-key"
+    ) as { id: string; email: string };
 
-  // Create plain serializable objects for visitors
-  const visitors =
-    visitorsData?.map((visitor) => ({
-      id: visitor.id,
-      first_visit_at: visitor.first_visit_at,
-      last_visit_at: visitor.last_visit_at,
-      visit_count: visitor.visit_count || 0,
-      ip_address: visitor.ip_address || "",
-      user_agent: visitor.user_agent || "",
-      browser: visitor.browser || "",
-      browser_version: visitor.browser_version || "",
-      os: visitor.os || "",
-      os_version: visitor.os_version || "",
-      device_type: visitor.device_type || "",
-      screen_width: visitor.screen_width || 0,
-      screen_height: visitor.screen_height || 0,
-      country: visitor.country || "",
-      city: visitor.city || "",
-      region: visitor.region || "",
-      timezone: visitor.timezone || "",
-      language: visitor.language || "",
-      referrer: visitor.referrer || "",
-      user_id: visitor.user_id || "",
-    })) || [];
+    // Get the user from the database
+    const user = await getUserById(decoded.id);
 
-  // Fetch active visits
-  const { data: activeVisits } = await supabase
-    .from("visits")
-    .select("*, visitors(*)")
-    .eq("is_active", true)
-    .limit(5);
+    if (!user) {
+      return redirect("/sign-in");
+    }
 
-  // Prepare active visitors data
-  const activeVisitors =
-    activeVisits?.map((visit) => {
-      const visitorData = visit.visitors as Visitor;
-      return {
-        visitor: {
-          id: visitorData.id,
-          first_visit_at: visitorData.first_visit_at,
-          last_visit_at: visitorData.last_visit_at,
-          visit_count: visitorData.visit_count,
-          ip_address: visitorData.ip_address,
-          browser: visitorData.browser,
-          os: visitorData.os,
-          device_type: visitorData.device_type,
-          country: visitorData.country,
-          city: visitorData.city,
-        },
-        visit: {
-          id: visit.id,
-          visitor_id: visit.visitor_id,
-          started_at: visit.started_at,
-          is_active: visit.is_active,
-          entry_page: visit.entry_page,
-        },
-        currentPage: visit.entry_page,
-      };
-    }) || [];
+    // Fetch visitors data
+    const visitors = await getVisitors(12);
+
+    // Fetch active visits
+    const activeVisitors = await getActiveVisits(5);
+
+    // Get visitor stats
+    const stats = await getVisitorStats();
 
   // Sample interaction data (in a real app, this would come from the database)
   const interactionChannels = [
@@ -111,11 +66,11 @@ export default async function TrackingDashboard() {
           </div>
 
           <StatsCards
-            totalVisitors={visitors?.length || 0}
-            activeVisitors={activeVisitors.length}
-            totalPageviews={256} // Sample data
-            totalEvents={128} // Sample data
-            avgTimeOnSite={183} // Sample data: 3m 3s
+            totalVisitors={stats.totalVisitors}
+            activeVisitors={stats.activeVisitors}
+            totalPageviews={stats.totalPageviews}
+            totalEvents={stats.totalEvents}
+            avgTimeOnSite={stats.avgTimeOnSite}
           />
 
           <Tabs defaultValue="visitors">
@@ -221,4 +176,8 @@ export default async function TrackingDashboard() {
       </main>
     </>
   );
+  } catch (error) {
+    console.error("Auth error in tracking dashboard:", error);
+    return redirect("/sign-in");
+  }
 }

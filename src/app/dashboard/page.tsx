@@ -9,28 +9,39 @@ import {
   Globe,
 } from "lucide-react";
 import { redirect } from "next/navigation";
-import { createClient } from "../../../supabase/server";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+import { getUserById } from "@/lib/auth";
 
 export default async function Dashboard() {
-  const supabase = await createClient();
+  const cookieStore = cookies();
+  const token = cookieStore.get("auth_token")?.value;
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    console.error("Auth error in dashboard:", error);
+  if (!token) {
     return redirect("/sign-in");
   }
 
-  // Get user's full name from metadata
-  const fullName = user.user_metadata?.full_name || "User";
+  try {
+    // Verify the token
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your-secret-key"
+    ) as { id: string; email: string };
 
-  // Generate a unique key for this render to avoid duplicate key warnings
-  const renderKey = Math.random().toString(36).substring(2, 15);
+    // Get the user from the database
+    const user = await getUserById(decoded.id);
+
+    if (!user) {
+      return redirect("/sign-in");
+    }
+
+    // Get user's full name
+    const fullName = user.full_name || "User";
+
+    // Generate a unique key for this render to avoid duplicate key warnings
+    const renderKey = Math.random().toString(36).substring(2, 15);
 
   return (
     <>
@@ -142,8 +153,8 @@ export default async function Dashboard() {
                   <div>
                     <p className="text-sm font-medium mb-1">Last Login</p>
                     <p className="text-sm text-muted-foreground">
-                      {user.last_sign_in_at
-                        ? new Date(user.last_sign_in_at).toLocaleString()
+                      {user.updated_at
+                        ? new Date(user.updated_at).toLocaleString()
                         : "N/A"}
                     </p>
                   </div>
@@ -217,4 +228,8 @@ export default async function Dashboard() {
       </main>
     </>
   );
+  } catch (error) {
+    console.error("Auth error in dashboard:", error);
+    return redirect("/sign-in");
+  }
 }

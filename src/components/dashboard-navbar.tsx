@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { createClient } from "../../supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +20,28 @@ import { useRouter } from "next/navigation";
 import { ThemeSwitcher } from "./theme-switcher";
 
 export default function DashboardNavbar() {
-  const supabase = createClient();
   const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      // Call the sign-out API route
+      const response = await fetch("/api/auth/sign-out", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        // Redirect to sign-in page
+        router.push("/sign-in");
+      } else {
+        console.error("Failed to sign out");
+      }
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white py-3 sticky top-0 z-10">
@@ -88,12 +107,7 @@ export default function DashboardNavbar() {
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  router.refresh();
-                }}
-              >
+              <DropdownMenuItem onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign out
               </DropdownMenuItem>

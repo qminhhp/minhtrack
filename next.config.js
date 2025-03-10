@@ -3,6 +3,16 @@
 const nextConfig = {
     images: {
         domains: ['images.unsplash.com'],
+    },
+    // Exclude Supabase Edge Functions from the build
+    webpack: (config, { isServer }) => {
+        // Add a rule to handle Deno/Supabase Edge Functions
+        config.module.rules.push({
+            test: /supabase\/functions\/.*\.ts$/,
+            loader: 'ignore-loader',
+        });
+        
+        return config;
     }
 };
 

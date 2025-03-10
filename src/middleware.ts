@@ -1,48 +1,39 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  const token = req.cookies.get("auth_token")?.value;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll().map(({ name, value }) => ({
-            name,
-            value,
-          }));
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            req.cookies.set(name, value);
-            res.cookies.set(name, value, options);
-          });
-        },
-      },
-    },
-  );
+  let isAuthenticated = false;
+  let userId = null;
 
-  // Refresh session if expired - required for Server Components
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error) {
-    console.error("Auth session error:", error);
+  if (token) {
+    try {
+      // Verify the token
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "your-secret-key"
+      ) as { id: string; email: string };
+      
+      isAuthenticated = true;
+      userId = decoded.id;
+    } catch (error) {
+      console.error("Auth token error:", error);
+      // Token is invalid, clear it
+      res.cookies.delete("auth_token");
+    }
   }
 
   // Redirect authenticated users to dashboard from home page
-  if (req.nextUrl.pathname === "/" && session) {
+  if (req.nextUrl.pathname === "/" && isAuthenticated) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   // Redirect unauthenticated users away from protected routes
-  if (req.nextUrl.pathname.startsWith("/dashboard") && !session) {
+  if (req.nextUrl.pathname.startsWith("/dashboard") && !isAuthenticated) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Websites table
 CREATE TABLE IF NOT EXISTS websites (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   url VARCHAR(255) NOT NULL,
   description TEXT,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS websites (
 
 -- Visitors table
 CREATE TABLE IF NOT EXISTS visitors (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY,
   first_visit_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   last_visit_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   visit_count INTEGER DEFAULT 1,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS visitors (
 
 -- Visits table
 CREATE TABLE IF NOT EXISTS visits (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY,
   visitor_id UUID NOT NULL REFERENCES visitors(id) ON DELETE CASCADE,
   started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   ended_at TIMESTAMP WITH TIME ZONE,
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS visits (
 
 -- Pageviews table
 CREATE TABLE IF NOT EXISTS pageviews (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY,
   visit_id UUID NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
   visitor_id UUID NOT NULL REFERENCES visitors(id) ON DELETE CASCADE,
   website_id UUID REFERENCES websites(id) ON DELETE CASCADE,
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS pageviews (
 
 -- Events table
 CREATE TABLE IF NOT EXISTS events (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY,
   visit_id UUID NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
   visitor_id UUID NOT NULL REFERENCES visitors(id) ON DELETE CASCADE,
   website_id UUID REFERENCES websites(id) ON DELETE CASCADE,

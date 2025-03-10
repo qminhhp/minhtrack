@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3001"
+    "start": "next start -p 3001",
+    "setup-db": "node scripts/setup-db.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
@@ -27,6 +28,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
     "embla-carousel-react": "^8.5.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.468.0",
@@ -54,6 +56,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^10.0.0",
+    "ignore-loader": "^0.1.2",
     "postcss": "^8",
     "tailwind-merge": "^2",
     "tailwindcss": "^3",

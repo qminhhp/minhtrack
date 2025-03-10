@@ -19,6 +19,7 @@ export interface Visitor {
   language?: string;
   referrer?: string;
   user_id?: string;
+  website_id?: string;
 }
 
 export interface Visit {
@@ -42,6 +43,7 @@ export interface Pageview {
   id: string;
   visit_id: string;
   visitor_id: string;
+  website_id?: string;
   url: string;
   page_title?: string;
   viewed_at: string;
@@ -55,6 +57,7 @@ export interface Event {
   id: string;
   visit_id: string;
   visitor_id: string;
+  website_id?: string;
   event_type: string;
   event_category?: string;
   event_action?: string;
